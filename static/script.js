@@ -13,27 +13,38 @@ async function analyzeNews() {
     const confidenceFill = document.getElementById("confidenceFill");
     const confidenceText = document.getElementById("confidenceText");
 
+    const videoResults = document.getElementById("videoResults");
 
-    // Check empty search
+
+    // ==============================
+    // CHECK EMPTY SEARCH
+    // ==============================
+
     if (!searchInput) {
-
         alert("Please enter a news topic or search query.");
-
         return;
     }
 
 
-    // Show loading
+    // ==============================
+    // SHOW LOADING
+    // ==============================
+
     loading.style.display = "block";
     resultSection.style.display = "none";
+
+    videoResults.innerHTML = `
+        <div class="video-placeholder">
+            🎥 Searching for related news videos...
+        </div>
+    `;
 
 
     try {
 
-        /*
-        The current ML model expects text.
-        We send the user's search query to the Flask backend.
-        */
+        // ==============================
+        // AI FAKE NEWS PREDICTION
+        // ==============================
 
         const response = await fetch("/predict", {
 
@@ -45,7 +56,8 @@ async function analyzeNews() {
 
             body: JSON.stringify({
                 title: searchInput,
-                text: searchInput
+                text: searchInput,
+                query: searchInput
             })
 
         });
@@ -54,19 +66,30 @@ async function analyzeNews() {
         const data = await response.json();
 
 
+        if (!response.ok) {
+            throw new Error(data.error || "Prediction failed.");
+        }
+
+
+        // ==============================
+        // SHOW RESULT
+        // ==============================
+
         loading.style.display = "none";
         resultSection.style.display = "block";
 
 
-        // Update percentages
+        // Real percentage
         realPercentage.textContent =
             data.real_percentage + "%";
 
+
+        // Fake percentage
         fakePercentage.textContent =
             data.fake_percentage + "%";
 
 
-        // Update confidence
+        // Confidence
         confidenceText.textContent =
             data.confidence + "%";
 
@@ -74,7 +97,10 @@ async function analyzeNews() {
             data.confidence + "%";
 
 
-        // Prediction result
+        // ==============================
+        // PREDICTION RESULT
+        // ==============================
+
         if (data.result === "FAKE NEWS") {
 
             predictionResult.className = "prediction-fake";
@@ -101,22 +127,126 @@ async function analyzeNews() {
         }
 
 
-        // Temporary video message
-        document.getElementById("videoResults").innerHTML = `
-            <div class="video-placeholder">
-                🎥 Related news videos will appear here.
-                <br><br>
-                Video search integration will be added next.
-            </div>
-        `;
+        // ==============================
+        // FETCH RELATED YOUTUBE VIDEOS
+        // ==============================
+
+        try {
+
+            const videoResponse = await fetch("/videos", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    query: searchInput
+                })
+
+            });
+
+
+            const videoData = await videoResponse.json();
+
+
+            if (
+                videoResponse.ok &&
+                videoData.videos &&
+                videoData.videos.length > 0
+            ) {
+
+                videoResults.innerHTML = "";
+
+
+                videoData.videos.forEach(video => {
+
+                    const videoCard = document.createElement("div");
+
+                    videoCard.className = "video-card";
+
+
+                    videoCard.innerHTML = `
+                        <img
+                            src="${video.thumbnail}"
+                            alt="News video thumbnail"
+                            class="video-thumbnail"
+                        >
+
+                        <div class="video-info">
+
+                            <h3>${escapeHTML(video.title)}</h3>
+
+                            <p>
+                                📺 ${escapeHTML(video.channel)}
+                            </p>
+
+                            <a
+                                href="${video.url}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="watch-video"
+                            >
+                                ▶ Watch Video
+                            </a>
+
+                        </div>
+                    `;
+
+
+                    videoResults.appendChild(videoCard);
+
+                });
+
+
+            } else {
+
+                videoResults.innerHTML = `
+                    <div class="video-placeholder">
+                        🎥 No related videos found.
+                    </div>
+                `;
+
+            }
+
+
+        } catch (videoError) {
+
+            console.error("YouTube error:", videoError);
+
+            videoResults.innerHTML = `
+                <div class="video-placeholder">
+                    🎥 Unable to load related videos.
+                </div>
+            `;
+
+        }
 
 
     } catch (error) {
 
         loading.style.display = "none";
 
-        alert("Something went wrong. Please try again.");
+        console.error("Analysis error:", error);
 
-        console.error(error);
+        alert(
+            error.message ||
+            "Something went wrong. Please try again."
+        );
     }
+}
+
+
+// ==============================
+// SECURITY HELPER
+// ==============================
+
+function escapeHTML(text) {
+
+    const div = document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
 }
