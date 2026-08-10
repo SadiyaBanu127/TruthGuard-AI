@@ -1,252 +1,36 @@
+const input = document.getElementById("searchInput");
+const button = document.getElementById("analyzeButton");
+const loading = document.getElementById("loading");
+const resultSection = document.getElementById("resultSection");
+const message = document.getElementById("formMessage");
+
+button.addEventListener("click", analyzeNews);
+input.addEventListener("keydown", (event) => { if (event.key === "Enter") analyzeNews(); });
+
+function showMessage(text = "") { message.textContent = text; }
+function setLoading(active) { loading.hidden = !active; button.disabled = active; button.textContent = active ? "Analyzing..." : "Analyze News"; }
+function placeholder(text) { const area = document.getElementById("videoResults"); const item = document.createElement("p"); item.className = "video-placeholder"; item.textContent = text; area.replaceChildren(item); }
+
 async function analyzeNews() {
-
-    const searchInput = document.getElementById("searchInput").value.trim();
-
-    const loading = document.getElementById("loading");
-    const resultSection = document.getElementById("resultSection");
-
-    const predictionResult = document.getElementById("predictionResult");
-
-    const realPercentage = document.getElementById("realPercentage");
-    const fakePercentage = document.getElementById("fakePercentage");
-
-    const confidenceFill = document.getElementById("confidenceFill");
-    const confidenceText = document.getElementById("confidenceText");
-
-    const videoResults = document.getElementById("videoResults");
-
-
-    // ==============================
-    // CHECK EMPTY SEARCH
-    // ==============================
-
-    if (!searchInput) {
-        alert("Please enter a news topic or search query.");
-        return;
-    }
-
-
-    // ==============================
-    // SHOW LOADING
-    // ==============================
-
-    loading.style.display = "block";
-    resultSection.style.display = "none";
-
-    videoResults.innerHTML = `
-        <div class="video-placeholder">
-            🎥 Searching for related news videos...
-        </div>
-    `;
-
-
-    try {
-
-        // ==============================
-        // AI FAKE NEWS PREDICTION
-        // ==============================
-
-        const response = await fetch("/predict", {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                title: searchInput,
-                text: searchInput,
-                query: searchInput
-            })
-
-        });
-
-
-        const data = await response.json();
-
-
-        if (!response.ok) {
-            throw new Error(data.error || "Prediction failed.");
-        }
-
-
-        // ==============================
-        // SHOW RESULT
-        // ==============================
-
-        loading.style.display = "none";
-        resultSection.style.display = "block";
-
-
-        // Real percentage
-        realPercentage.textContent =
-            data.real_percentage + "%";
-
-
-        // Fake percentage
-        fakePercentage.textContent =
-            data.fake_percentage + "%";
-
-
-        // Confidence
-        confidenceText.textContent =
-            data.confidence + "%";
-
-        confidenceFill.style.width =
-            data.confidence + "%";
-
-
-        // ==============================
-        // PREDICTION RESULT
-        // ==============================
-
-        if (data.result === "FAKE NEWS") {
-
-            predictionResult.className = "prediction-fake";
-
-            predictionResult.innerHTML = `
-                <h2>⚠️ LIKELY FAKE NEWS</h2>
-                <p>
-                    The AI model predicts that this information
-                    may be misleading.
-                </p>
-            `;
-
-        } else {
-
-            predictionResult.className = "prediction-real";
-
-            predictionResult.innerHTML = `
-                <h2>✅ LIKELY REAL NEWS</h2>
-                <p>
-                    The AI model predicts that this information
-                    is more likely to be real.
-                </p>
-            `;
-        }
-
-
-        // ==============================
-        // FETCH RELATED YOUTUBE VIDEOS
-        // ==============================
-
-        try {
-
-            const videoResponse = await fetch("/videos", {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    query: searchInput
-                })
-
-            });
-
-
-            const videoData = await videoResponse.json();
-
-
-            if (
-                videoResponse.ok &&
-                videoData.videos &&
-                videoData.videos.length > 0
-            ) {
-
-                videoResults.innerHTML = "";
-
-
-                videoData.videos.forEach(video => {
-
-                    const videoCard = document.createElement("div");
-
-                    videoCard.className = "video-card";
-
-
-                    videoCard.innerHTML = `
-                        <img
-                            src="${video.thumbnail}"
-                            alt="News video thumbnail"
-                            class="video-thumbnail"
-                        >
-
-                        <div class="video-info">
-
-                            <h3>${escapeHTML(video.title)}</h3>
-
-                            <p>
-                                📺 ${escapeHTML(video.channel)}
-                            </p>
-
-                            <a
-                                href="${video.url}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="watch-video"
-                            >
-                                ▶ Watch Video
-                            </a>
-
-                        </div>
-                    `;
-
-
-                    videoResults.appendChild(videoCard);
-
-                });
-
-
-            } else {
-
-                videoResults.innerHTML = `
-                    <div class="video-placeholder">
-                        🎥 No related videos found.
-                    </div>
-                `;
-
-            }
-
-
-        } catch (videoError) {
-
-            console.error("YouTube error:", videoError);
-
-            videoResults.innerHTML = `
-                <div class="video-placeholder">
-                    🎥 Unable to load related videos.
-                </div>
-            `;
-
-        }
-
-
-    } catch (error) {
-
-        loading.style.display = "none";
-
-        console.error("Analysis error:", error);
-
-        alert(
-            error.message ||
-            "Something went wrong. Please try again."
-        );
-    }
+  const query = input.value.trim();
+  if (!query) { showMessage("Please enter a news topic or search query."); input.focus(); return; }
+  showMessage(""); setLoading(true); resultSection.hidden = true; placeholder("Searching for related news videos...");
+  try {
+    const response = await fetch("/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Prediction failed.");
+    renderResult(data); resultSection.hidden = false; loadVideos(query);
+  } catch (error) { showMessage(error.message || "Something went wrong. Please try again."); } finally { setLoading(false); }
 }
 
-
-// ==============================
-// SECURITY HELPER
-// ==============================
-
-function escapeHTML(text) {
-
-    const div = document.createElement("div");
-
-    div.textContent = text;
-
-    return div.innerHTML;
+function renderResult(data) {
+  const fake = data.result === "FAKE NEWS"; const result = document.getElementById("predictionResult"); result.className = fake ? "prediction-fake" : "prediction-real";
+  const heading = document.createElement("h2"); heading.textContent = fake ? "LIKELY FAKE NEWS" : "LIKELY REAL NEWS";
+  const text = document.createElement("p"); text.textContent = fake ? "The AI model predicts this information may be misleading." : "The AI model predicts this information is more likely to be real.";
+  result.replaceChildren(heading, text);
+  document.getElementById("realPercentage").textContent = `${data.real_percentage}%`; document.getElementById("fakePercentage").textContent = `${data.fake_percentage}%`; document.getElementById("confidenceText").textContent = `${data.confidence}%`;
+  document.getElementById("confidenceFill").style.width = `${data.confidence}%`; document.getElementById("disclaimer").textContent = data.disclaimer;
 }
+
+async function loadVideos(query) { try { const response = await fetch("/videos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) }); const data = await response.json(); if (!response.ok || !data.videos?.length) { placeholder(data.message || data.error || "No related videos found."); return; } document.getElementById("videoResults").replaceChildren(...data.videos.map(videoCard)); } catch { placeholder("Unable to load related videos."); } }
+function videoCard(video) { const card = document.createElement("article"); card.className = "video-card"; if (video.thumbnail?.startsWith("https://")) { const image = document.createElement("img"); image.src = video.thumbnail; image.alt = ""; image.loading = "lazy"; card.append(image); } const details = document.createElement("div"); details.className = "video-info"; const title = document.createElement("h3"); title.textContent = video.title; const channel = document.createElement("p"); channel.textContent = `Channel: ${video.channel}`; details.append(title, channel); if (video.published_at) { const date = new Date(video.published_at); const published = document.createElement("p"); published.textContent = `Published: ${Number.isNaN(date.getTime()) ? video.published_at : date.toLocaleDateString()}`; details.append(published); } if (video.credibility) { const score = document.createElement("div"); score.className = `video-score ${video.credibility.result === "FAKE NEWS" ? "video-score-fake" : "video-score-real"}`; const verdict = document.createElement("strong"); verdict.textContent = video.credibility.result === "FAKE NEWS" ? "Likely Fake" : "Likely Real"; const values = document.createElement("span"); values.textContent = `Real: ${video.credibility.real_percentage}% | Fake: ${video.credibility.fake_percentage}%`; score.append(verdict, values); details.append(score); } const link = document.createElement("a"); link.href = video.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Watch Video"; details.append(link); card.append(details); return card; }

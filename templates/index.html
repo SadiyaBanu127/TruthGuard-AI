@@ -1,156 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>TruthGuard AI</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TruthGuard AI provides a quick educational news credibility estimate.">
+  <title>TruthGuard AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
+  <header class="navbar">
+    <div class="logo">TruthGuard AI</div>
+    <div class="nav-text">AI News Verification</div>
+  </header>
 
-    <header class="navbar">
-        <div class="logo">🛡️ TruthGuard AI</div>
+  <main>
+    <section class="hero">
+      <div class="hero-icon">TG</div>
+      <h1>TruthGuard AI</h1>
+      <h2>Detect Fake News with AI</h2>
+      <p>Search for any news, headline, or topic to see whether the information is likely real or fake.</p>
+    </section>
 
-        <div class="nav-text">
-            AI News Verification
-        </div>
-    </header>
+    <section class="search-section">
+      <label class="sr-only" for="searchInput">News or topic to analyze</label>
+      <div class="search-box"><span class="search-icon">Search</span><input id="searchInput" type="text" maxlength="20000" placeholder="Search any news or topic..." autocomplete="off"></div>
+      <button id="analyzeButton" class="analyze-btn" type="button">Analyze News</button>
+      <p id="formMessage" class="form-message" role="alert" aria-live="assertive"></p>
+    </section>
 
+    <div id="loading" class="loading" hidden><span class="loader"></span><p>Analyzing news...</p></div>
+    <section id="resultSection" class="result-section" hidden aria-live="polite">
+      <div id="predictionResult"></div>
+      <div class="percentage-container">
+        <div class="percentage-card real-card"><span>R</span><h3>Likely Real</h3><strong id="realPercentage">0%</strong></div>
+        <div class="percentage-card fake-card"><span>F</span><h3>Likely Fake</h3><strong id="fakePercentage">0%</strong></div>
+      </div>
+      <div class="confidence-card"><h3>AI Confidence</h3><div class="confidence-bar"><div id="confidenceFill"></div></div><strong id="confidenceText">0%</strong></div>
+      <p id="disclaimer" class="disclaimer"></p>
+      <section class="videos-section"><h2>Related News Videos</h2><p class="video-description">Video cards also show Real and Fake percentages from their title and channel text.</p><div id="videoResults" class="video-grid"><p class="video-placeholder">Related videos will appear here.</p></div></section>
+    </section>
 
-    <main>
-
-        <section class="hero">
-
-            <div class="hero-icon">🛡️</div>
-
-            <h1>TruthGuard AI</h1>
-
-            <h2>Detect Fake News with AI</h2>
-
-            <p>
-                Search for any news or topic and discover whether
-                the information is likely real, fake, or misleading.
-            </p>
-
-        </section>
-
-
-        <section class="search-section">
-
-            <div class="search-box">
-
-                <span class="search-icon">🔎</span>
-
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Search any news or topic..."
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <button onclick="analyzeNews()" class="analyze-btn">
-                🔍 Analyze News
-            </button>
-
-        </section>
-
-
-        <div id="loading" class="loading">
-            <div class="loader"></div>
-            <p>Analyzing news...</p>
-        </div>
-
-
-        <section id="resultSection" class="result-section">
-
-            <div id="predictionResult"></div>
-
-            <div class="percentage-container">
-
-                <div class="percentage-card real-card">
-                    <span>✅</span>
-                    <h3>Likely Real</h3>
-                    <strong id="realPercentage">0%</strong>
-                </div>
-
-                <div class="percentage-card fake-card">
-                    <span>⚠️</span>
-                    <h3>Likely Fake</h3>
-                    <strong id="fakePercentage">0%</strong>
-                </div>
-
-            </div>
-
-
-            <div class="confidence-card">
-
-                <h3>🎯 AI Confidence</h3>
-
-                <div class="confidence-bar">
-                    <div id="confidenceFill"></div>
-                </div>
-
-                <strong id="confidenceText">0%</strong>
-
-            </div>
-
-
-            <div class="videos-section">
-
-                <h2>🎥 Related News Videos</h2>
-
-                <div id="videoResults" class="video-grid">
-
-                    <p class="video-placeholder">
-                        Related videos will appear here.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <section class="features">
-
-            <div class="feature-card">
-                <span>🤖</span>
-                <h3>AI Analysis</h3>
-                <p>Machine learning analyzes news information.</p>
-            </div>
-
-            <div class="feature-card">
-                <span>📊</span>
-                <h3>Truth Score</h3>
-                <p>See estimated real and fake probabilities.</p>
-            </div>
-
-            <div class="feature-card">
-                <span>🎥</span>
-                <h3>News Videos</h3>
-                <p>Explore related news videos and sources.</p>
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <footer>
-        <p>© 2026 TruthGuard AI | AI-Powered News Verification</p>
-    </footer>
-
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-
+    <section class="features">
+      <div class="feature-card"><span>AI</span><h3>AI Analysis</h3><p>Machine learning analyzes news information.</p></div>
+      <div class="feature-card"><span>%</span><h3>Truth Score</h3><p>See estimated real and fake probabilities.</p></div>
+      <div class="feature-card"><span>V</span><h3>News Videos</h3><p>Explore related news videos and sources.</p></div>
+    </section>
+  </main>
+  <footer><p>Copyright 2026 TruthGuard AI | AI-Powered News Verification</p></footer>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
-
 </html>
