@@ -1,41 +1,135 @@
-# TruthGuard AI
+# 🛡️ TruthGuard AI
 
-TruthGuard AI is a full-stack Flask web app that provides a local machine-learning estimate of whether submitted news text resembles the real or fake examples in its training data. It is an educational signal, **not** a fact-checking service.
+### AI-Powered Fake News Detection & News Verification Platform
 
-## Features
+TruthGuard AI is a full-stack Flask web application that uses Machine Learning to estimate whether submitted news text resembles **real or fake news** based on its training data.
 
-- Quick-claim and structured article analysis modes
-- Optional source URL captured as context, without fetching the page
-- Real/fake probability estimate, confidence level, and model-vocabulary signals
-- Downloadable JSON result and copyable text summary
-- Recent analysis history stored only in the current browser
-- Optional YouTube related-video search with safe search enabled; each result shows Real %, Fake %, verdict, and confidence based on its title/channel metadata
-- Health and service-information API endpoints
+The application also provides **Real/Fake probability percentages, AI confidence, related YouTube news videos, analysis history, downloadable results, and source context** in a modern web interface.
 
-## Run locally
+> ⚠️ **Disclaimer:** TruthGuard AI is an educational machine-learning project. It provides an estimated signal based on its training data and should not be treated as a professional fact-checking service.
 
-1. Create and activate a virtual environment.
-2. Install dependencies: `python -m pip install -r requirements.txt`
-3. Train (or refresh) the local model: `python train_model.py`
-4. Start the site: `python app.py`
-5. Open `http://127.0.0.1:5000`.
+---
 
-## Optional video search
+## 🚀 Features
 
-Create a `.env` file in the project root containing:
+### 🤖 AI News Analysis
 
-```env
-YOUTUBE_API_KEY=your_key_here
-```
+- Analyze news claims and article text using Machine Learning.
+- Predict whether the submitted information is likely:
+  - ✅ Real News
+  - ⚠️ Fake News
+- Display:
+  - Real probability percentage
+  - Fake probability percentage
+  - AI confidence
+  - Model prediction
+- Provides model-vocabulary signals for additional context.
 
-Without a key, claim analysis still works; the related-video area simply explains that video search is unavailable.
+### 🔎 Two Analysis Modes
 
-## Validate
+- **Quick Claim Analysis** – Quickly analyze a news claim or topic.
+- **Structured Article Analysis** – Analyze more detailed news content.
 
-Run the automated endpoint checks with:
+### 🔗 Source URL Context
 
-```bash
-python -m unittest -v
-```
+- Users can optionally provide the original news source URL.
+- The URL is stored as context for the analysis.
+- TruthGuard AI does **not automatically fetch or scrape the webpage**.
 
-The sample training dataset is intentionally small. Before relying on this project beyond a demonstration, replace it with a large, representative, well-labeled dataset and evaluate the model for accuracy, bias, and drift.
+### 🎥 Related YouTube News Videos
+
+- Searches YouTube for related news videos.
+- Uses the **YouTube Data API v3**.
+- Displays relevant videos with:
+  - Video thumbnail
+  - Video title
+  - Channel name
+  - Published information
+  - YouTube link
+- Provides estimated Real/Fake percentages and confidence based on available video metadata.
+- Uses safe-search settings where supported.
+
+### 📊 Analysis Results
+
+Each analysis can provide:
+
+- Prediction
+- Real %
+- Fake %
+- Confidence level
+- Model signals
+- Search context
+
+### 📥 Download Results
+
+- Download the analysis result as a JSON file.
+- Copy a text summary of the result.
+
+### 🕘 Recent Analysis History
+
+- Keeps recent analysis results in the browser.
+- History is stored locally in the current browser.
+- No server-side personal history is required.
+
+### 🏥 Health & Service APIs
+
+The application also includes health/service-information API endpoints for checking application availability and service status.
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+- HTML5
+- CSS3
+- JavaScript
+- Responsive UI
+
+## Backend
+
+- Python
+- Flask
+
+## Machine Learning
+
+- Scikit-learn
+- Logistic Regression
+- TF-IDF / text-based feature processing
+- Joblib
+
+## APIs
+
+- YouTube Data API v3
+
+## Other Tools
+
+- Python-dotenv
+- Requests
+- Git & GitHub
+
+---
+
+# 📂 Project Structure
+
+```text
+TruthGuard-AI/
+│
+├── app.py
+├── train_model.py
+├── test_app.py
+├── requirements.txt
+├── README.md
+├── news.csv
+├── .gitignore
+├── .env
+│
+├── model/
+│   └── fake_news_model.pkl
+│
+├── templates/
+│   └── index.html
+│
+└── static/
+    ├── style.css
+    └── script.js
